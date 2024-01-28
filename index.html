@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        .wikitable {
+            background-color:#f8f9fa;
+            color:#202122;
+            margin:1em 0;
+            border:1px solid #a2a9b1;
+            border-collapse:collapse;
+        }
+        .wikitable > tr > th,
+        .wikitable > tr > td,
+        .wikitable > * > tr > th,
+        .wikitable > * > tr > td {
+            border:1px solid #a2a9b1;
+            padding:0.2em 0.4em;
+        }
+        .wikitable > tr > th,
+        .wikitable > * > tr > th {
+            background-color:#eaecf0;
+            text-align:center;
+        }
+        .wikitable > caption {
+            font-weight:bold;
+        }
+        .WIN { background-color: royalblue; }
+        .TOP2 { background-color: cyan; }
+        .HIGH { background-color: lightblue; }
+        .SAFE { background-color: white; }
+        .LOW { background-color: lightpink; }
+        .BTM2 { background-color: tomato; }
+        .ELIM { background-color: red; }
+            select {
+        border: none;
+        padding: 5px;
+        margin: 5px 0;
+        border-radius: 5px;
+        outline: none;
+    }
+    
+    .dark-gray {
+    background-color: darkgray;
+}
+
+    /* Styles for the options */
+    option[value="WIN"] { background-color: royalblue; color: white; }
+    option[value="TOP2"] { background-color: cyan; color: black; }
+    option[value="HIGH"] { background-color: lightblue; color: black; }
+    option[value="SAFE"] { background-color: white; color: black; }
+    option[value="LOW"] { background-color: lightpink; color: black; }
+    option[value="BTM2"] { background-color: tomato; color: white; }
+    option[value="ELIM"] { background-color: red; color: white; }
+
+    body {
+            background-color: #f8f9fa;
+            font-family: 'Roboto', sans-serif;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #queenForm, #queenPlacements, #confirmEpisode, #trackRecordTable {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        #queenForm input, #queenForm button, #confirmEpisode {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        #queenPlacements {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        #queenPlacements label {
+            font-size: 18px;
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+
+        #queenPlacements select {
+            font-size: 16px;
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 10px;
+            border-radius: 5px;
+            outline: none;
+            margin-top: 10px;
+            border: none;
+        }
+
+        .dropdown-content {
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .dropdown-content a {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .dark-gray {
+            background-color: darkgray;
+        }
+
+        /* Styles for the options */
+        option[value="WIN"] { background-color: royalblue; color: white; }
+        option[value="TOP2"] { background-color: cyan; color: black; }
+        option[value="HIGH"] { background-color: lightblue; color: black; }
+        option[value="SAFE"] { background-color: white; color: black; }
+        option[value="LOW"] { background-color: lightpink; color: black; }
+        option[value="BTM2"] { background-color: tomato; color: white; }
+        option[value="ELIM"] { background-color: red; color: white; }
+
+        #trackRecordTable {
+    text-align: center;
+}
+
+#trackRecordTable th,
+#trackRecordTable td {
+    height: 35px;
+}
+
+#trackRecordTable th {
+    background-color: #f2e4f2;
+    color: #0a2379;
+    font-weight: bold;
+}
+
+#trackRecordTable td:first-child {
+    background-color: #f2e4f2;
+    color: #0a2379;
+    font-weight: bold;
+    width: 125px;
+}
+
+#trackRecordTable td:not(:first-child) {
+    color: initial;
+    width: 70px;
+}
+/* Styles for the WIN and ELIM classes */
+#trackRecordTable td.WIN {
+    background-color: royalblue;
+    color: white;
+    font-weight: bold;
+}
+
+.ELIM {
+    background-color: red;
+    color: black;
+    font-weight: bold;
+}
+
+.WINNER {
+    background-color: gold;
+    color: black;
+    font-weight: bold;
+}
+
+.RUNNERUP {
+    background-color: silver;
+    color: black;
+    font-weight: bold;
+}
+</style>
+    </style>
+</head>
+<body>
+    <form id="queenForm">
+        <input type="text" id="queenNames" placeholder="Queen's names (comma separated)">
+        <button type="submit">Start Episode 1</button>
+    </form>
+    <div id="queenPlacements"></div>
+    <button id="confirmEpisode">Confirm Episode</button>
+    <table id="trackRecordTable" class="wikitable"></table>
+    <script>
+        var queens = [];
+        var currentEpisode = 1;
+
+        document.getElementById('queenForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var names = document.getElementById('queenNames').value.split(',');
+            names.forEach(function(name) {
+                queens.push({ name: name.trim(), placements: [], eliminated: false });
+            });
+            displayQueens();
+        });
+
+        document.getElementById('confirmEpisode').addEventListener('click', function() {
+    queens.forEach(function(queen) {
+        var select = document.getElementById('placement-' + queen.name);
+        if (select) {
+            var placement = select.value;
+            if (placement) {
+                queen.placements.push(placement);
+                if (placement === 'ELIM') {
+                    queen.eliminated = true;
+                    queen.eliminationOrder = currentEpisode;
+                }
+            } else {
+                queen.placements.push('SAFE');
+            }
+        }
+    });
+    currentEpisode++;
+    displayQueens();
+    updateTable();
+
+    // Check if there are only four queens left
+    var remainingQueens = queens.filter(function(queen) {
+        return !queen.eliminated;
+    });
+    if (remainingQueens.length === 4) {
+        var winnerName = prompt("Who won the season?");
+        var winner = queens.find(function(queen) {
+            return queen.name === winnerName;
+        });
+        if (winner) {
+            winner.placements.push('WINNER');
+            remainingQueens.forEach(function(queen) {
+                if (queen !== winner) {
+                    queen.placements.push('RUNNER UP');
+                }
+            });
+            updateTable();
+        }
+    }
+});
+
+        function displayQueens() {
+            var div = document.getElementById('queenPlacements');
+            div.innerHTML = '';
+            queens.forEach(function(queen) {
+                if (!queen.eliminated) {
+                    var label = document.createElement('label');
+                    label.textContent = queen.name;
+                    div.appendChild(label);
+                    var select = document.createElement('select');
+                    select.id = 'placement-' + queen.name;
+                    ['SAFE', 'WIN', 'TOP2', 'HIGH', 'LOW', 'BTM2', 'ELIM'].forEach(function(placement) {
+                        var option = document.createElement('option');
+                        option.value = placement;
+                        option.textContent = placement;
+                        select.appendChild(option);
+                    });
+                    div.appendChild(select);
+                    div.appendChild(document.createElement('br'));
+                }
+            });
+        }
+
+        function updateTable() {
+    var table = document.getElementById('trackRecordTable');
+    table.innerHTML = '';
+
+    // Create header row
+    var headerRow = document.createElement('tr');
+    var nameHeader = document.createElement('th');
+    nameHeader.textContent = 'Name';
+    headerRow.appendChild(nameHeader);
+    for (var i = 1; i <= currentEpisode; i++) {
+        var episodeHeader = document.createElement('th');
+        episodeHeader.textContent = 'EP ' + i;
+        headerRow.appendChild(episodeHeader);
+    }
+    table.appendChild(headerRow);
+
+    // Sort queens by elimination order
+    queens.sort(function(a, b) {
+        if (a.eliminated && b.eliminated) {
+            return b.eliminationOrder - a.eliminationOrder;
+        } else if (a.eliminated) {
+            return 1;
+        } else if (b.eliminated) {
+            return -1;
+        } else {
+            return 0;
+        }
+    });
+
+    // Create rows for each queen
+    queens.forEach(function(queen) {
+        var row = document.createElement('tr');
+        var nameCell = document.createElement('td');
+        nameCell.textContent = queen.name;
+        row.appendChild(nameCell);
+        for (var i = 0; i < currentEpisode; i++) {
+            var cell = document.createElement('td');
+            if (queen.placements[i]) {
+                cell.textContent = queen.placements[i];
+                cell.className = queen.placements[i];
+            } else if (queen.eliminated && i >= queen.eliminationOrder) {
+                cell.className = 'dark-gray';
+            }
+            row.appendChild(cell);
+        }
+        table.appendChild(row);
+    });
+}</script>
+</body>
+</html>
