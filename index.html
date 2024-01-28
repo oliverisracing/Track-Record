@@ -28,7 +28,7 @@
         .WIN { background-color: royalblue; }
         .TOP2 { background-color: cyan; }
         .HIGH { background-color: lightblue; }
-        .SAFE { background-color: white; }
+        .SAFE { background-color: f5ebf5; }
         .LOW { background-color: lightpink; }
         .BTM2 { background-color: tomato; }
         .ELIM { background-color: red; }
@@ -48,7 +48,7 @@
     option[value="WIN"] { background-color: royalblue; color: white; }
     option[value="TOP2"] { background-color: cyan; color: black; }
     option[value="HIGH"] { background-color: lightblue; color: black; }
-    option[value="SAFE"] { background-color: white; color: black; }
+    option[value="SAFE"] { background-color: #f5ebf5; color: black; }
     option[value="LOW"] { background-color: lightpink; color: black; }
     option[value="BTM2"] { background-color: tomato; color: white; }
     option[value="ELIM"] { background-color: red; color: white; }
@@ -76,32 +76,35 @@
         }
 
         #queenPlacements {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: space-between;
-        }
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 20px;
+}
 
-        #queenPlacements label {
-            font-size: 18px;
-            text-align: center;
-            width: 100%;
-            max-width: 600px;
-            margin-top: 20px;
-        }
+#queenPlacements div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+    width: 120px;
+}
 
-        #queenPlacements select {
-            font-size: 16px;
-            text-align: center;
-            width: 100%;
-            max-width: 600px;
-            padding: 10px;
-            border-radius: 5px;
-            outline: none;
-            margin-top: 10px;
-            border: none;
-        }
+#queenPlacements label {
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+#queenPlacements select {
+    font-size: 12px;
+    text-align: center;
+    width: 100%;
+    padding: 5px;
+    border-radius: 5px;
+    outline: none;
+    border: none;
+}
 
         .dropdown-content {
             text-align: center;
@@ -121,7 +124,7 @@
         option[value="WIN"] { background-color: royalblue; color: white; }
         option[value="TOP2"] { background-color: cyan; color: black; }
         option[value="HIGH"] { background-color: lightblue; color: black; }
-        option[value="SAFE"] { background-color: white; color: black; }
+        option[value="SAFE"] { background-color: #f2e4f2; color: black; }
         option[value="LOW"] { background-color: lightpink; color: black; }
         option[value="BTM2"] { background-color: tomato; color: white; }
         option[value="ELIM"] { background-color: red; color: white; }
@@ -216,9 +219,9 @@
             }
         }
     });
+    updateTable();
     currentEpisode++;
     displayQueens();
-    updateTable();
 
     // Check if there are only four queens left
     var remainingQueens = queens.filter(function(queen) {
@@ -241,27 +244,31 @@
     }
 });
 
-        function displayQueens() {
-            var div = document.getElementById('queenPlacements');
-            div.innerHTML = '';
-            queens.forEach(function(queen) {
-                if (!queen.eliminated) {
-                    var label = document.createElement('label');
-                    label.textContent = queen.name;
-                    div.appendChild(label);
-                    var select = document.createElement('select');
-                    select.id = 'placement-' + queen.name;
-                    ['SAFE', 'WIN', 'TOP2', 'HIGH', 'LOW', 'BTM2', 'ELIM'].forEach(function(placement) {
-                        var option = document.createElement('option');
-                        option.value = placement;
-                        option.textContent = placement;
-                        select.appendChild(option);
-                    });
-                    div.appendChild(select);
-                    div.appendChild(document.createElement('br'));
-                }
+function displayQueens() {
+    var div = document.getElementById('queenPlacements');
+    div.innerHTML = '';
+
+    // Shuffle queens
+    queens = queens.sort(() => Math.random() - 0.5);
+
+    queens.forEach(function(queen) {
+        if (!queen.eliminated) {
+            var label = document.createElement('label');
+            label.textContent = queen.name;
+            div.appendChild(label);
+            var select = document.createElement('select');
+            select.id = 'placement-' + queen.name;
+            ['SAFE', 'WIN', 'TOP2', 'HIGH', 'LOW', 'BTM2', 'ELIM'].forEach(function(placement) {
+                var option = document.createElement('option');
+                option.value = placement;
+                option.textContent = placement;
+                select.appendChild(option);
             });
+            div.appendChild(select);
+            div.appendChild(document.createElement('br'));
         }
+    });
+}
 
         function updateTable() {
     var table = document.getElementById('trackRecordTable');
@@ -277,6 +284,10 @@
         episodeHeader.textContent = 'EP ' + i;
         headerRow.appendChild(episodeHeader);
     }
+    // Add PPE header
+    var ppeHeader = document.createElement('th');
+    ppeHeader.textContent = 'PPE';
+    headerRow.appendChild(ppeHeader);
     table.appendChild(headerRow);
 
     // Sort queens by elimination order
@@ -298,16 +309,32 @@
         var nameCell = document.createElement('td');
         nameCell.textContent = queen.name;
         row.appendChild(nameCell);
+        var totalPoints = 0;
         for (var i = 0; i < currentEpisode; i++) {
             var cell = document.createElement('td');
             if (queen.placements[i]) {
                 cell.textContent = queen.placements[i];
                 cell.className = queen.placements[i];
+                // Calculate points
+                switch (queen.placements[i]) {
+                    case 'WIN': totalPoints += 5; break;
+                    case 'HIGH': totalPoints += 4; break;
+                    case 'TOP2': totalPoints += 4; break;
+                    case 'SAFE': totalPoints += 3; break;
+                    case 'LOW': totalPoints += 2; break;
+                    case 'BTM2': totalPoints += 1; break;
+                    case 'ELIM': totalPoints += 0; break;
+                }
             } else if (queen.eliminated && i >= queen.eliminationOrder) {
                 cell.className = 'dark-gray';
             }
             row.appendChild(cell);
         }
+        // Add PPE cell
+        var ppeCell = document.createElement('td');
+        var episodes = queen.eliminated ? queen.eliminationOrder : currentEpisode;
+        ppeCell.textContent = (totalPoints / episodes).toFixed(2); // Round to 2 decimal places
+        row.appendChild(ppeCell);
         table.appendChild(row);
     });
 }</script>
